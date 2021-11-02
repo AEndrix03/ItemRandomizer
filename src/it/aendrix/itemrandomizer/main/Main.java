@@ -1,6 +1,6 @@
 package it.aendrix.itemrandomizer.main;
 
-import it.aendrix.itemrandomizer.files.Configurtion;
+import it.aendrix.itemrandomizer.files.Configuration;
 import it.aendrix.itemrandomizer.obj.BaseBlock;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 public class Main extends JavaPlugin {
 
     private static Main instance;
-    private static Configurtion config;
+    private static Configuration config;
     private static HashMap<Location, BaseBlock> blocks;
     private static HashMap<String, ItemStack> items;
 
@@ -22,8 +22,9 @@ public class Main extends JavaPlugin {
 
         createDir();
 
-        config = new Configurtion();
+        config = new Configuration();
         config.loadBlocks();
+        config.loadItems();
 
     }
 
@@ -43,11 +44,11 @@ public class Main extends JavaPlugin {
         Main.blocks = blocks;
     }
 
-    public static Configurtion getConfiguration() {
+    public static Configuration getConfiguration() {
         return config;
     }
 
-    public static void setConfiguration(Configurtion config) {
+    public static void setConfiguration(Configuration config) {
         Main.config = config;
     }
 
