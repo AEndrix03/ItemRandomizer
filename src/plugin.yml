@@ -4,3 +4,8 @@ version: 1.0
 description: Randomize new Custom Item in un mondo
 main: it.aendrix.itemrandomizer.main.Main
 api-version: 1.16
+
+commands:
+    itemrandomizer:
+        aliases: [ir]
+        default: OP

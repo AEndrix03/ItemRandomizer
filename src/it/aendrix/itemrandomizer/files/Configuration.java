@@ -15,15 +15,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 public class Configuration {
 
     private static File f = new File("plugins/ItemRandomizer" + File.separator + "config.yml");
     private  static FileConfiguration cfg = YamlConfiguration.loadConfiguration(f);
+
+    public Configuration() {
+        Main.setItemsSpawned(new HashMap<>());
+    }
 
     public File getFile() {
         return f;
@@ -33,44 +37,94 @@ public class Configuration {
         return cfg;
     }
 
-    private void createConfiguration() {
+    public void createConfiguration() throws IOException {
+        Main.setBlocks(new HashMap<>());
+        Main.setItems(new HashMap<>());
+        Main.setData(new ArrayList<>());
 
+        if (f.exists()) return;
+
+        f.createNewFile();
     }
 
     public void loadBlocks() {
         if (cfg.getString("blocks") == null)
             return;
 
-        HashMap<Location, BaseBlock> blocks = new HashMap<>();
-        Main.setBlocks(blocks);
+        HashMap<String, BaseBlock> blocks = new HashMap<>();
 
         for (String name : cfg.getConfigurationSection("blocks").getKeys(false)) {
             BaseBlock b  = new BaseBlock();
-            b.setBlock(cfg.getLocation("blocks."+name+".location").getBlock());
+            b.setBlock(cfg.getLocation("blocks."+name+".location"));
             b.setMaxY(cfg.getDouble("blocks."+name+".maxY"));
             b.setLife(cfg.getInt("blocks."+name+".life"));
 
             List<String> dest = cfg.getStringList("blocks."+name+".destinationBlocks");
-            Location[] destinationBlocks = new Location[dest.size()];
+            int destsize = dest.size();
+            ArrayList<Location> destinationblocks = new ArrayList<Location>();
 
-            for (int i = 0; i<destinationBlocks.length; i++) {
+            for (int i = 0; i<destsize; i++) {
                 String[] loc = dest.get(i).split(";"); //WORLD;X;Y;Z
-                destinationBlocks[i] = new Location(Bukkit.getWorld(loc[0]), Double.parseDouble(loc[1])
-                        , Double.parseDouble(loc[2]), Double.parseDouble(loc[3]));
+                destinationblocks.add(new Location(Bukkit.getWorld(loc[0]), Double.parseDouble(loc[1])
+                        , Double.parseDouble(loc[2]), Double.parseDouble(loc[3])));
             }
 
-            b.setDestinationBlocks(destinationBlocks);
+            b.setDestinationBlocks(destinationblocks);
 
-            blocks.put(b.getBlock().getLocation(), b);
+            blocks.put(name.toUpperCase(), b);
+
+            Main.setBlocks(blocks);
+        }
+    }
+
+    public void saveBlocks(){
+        HashMap<String, BaseBlock> blocks = Main.getBlocks();
+
+        for (String s : blocks.keySet()) {
+            cfg.set("blocks."+s+".location", blocks.get(s).getBlock());
+            cfg.set("blocks."+s+".maxY", blocks.get(s).getMaxY());
+            cfg.set("blocks."+s+".life", blocks.get(s).getLife());
+            ArrayList<String> dbl = new ArrayList<>();
+            for (Location l : blocks.get(s).getDestinationBlocks())
+                dbl.add(l.getWorld().getName()+";"+l.getX()+";"+l.getY()+";"+l.getZ());
+            cfg.set("blocks."+s+".destinationBlocks", dbl);
+        }
+
+        try {
+            cfg.save(f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadData() {
+        if (cfg.getString("data") == null)
+            return;
+
+        List<String> data = cfg.getStringList("data");
+
+        Main.setData(data);
+    }
+
+    public void saveData() {
+        List<String> data = Main.getData();
+
+        cfg.set("data", data);
+
+        try {
+            cfg.save(f);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public void loadItems() {
+        Main.setActualTicket(cfg.getInt("actualTicket"));
+
         if (cfg.getString("items") == null)
             return;
 
         HashMap<String, ItemStack> items = new HashMap<>();
-        Main.setItems(items);
 
         for (String name : cfg.getConfigurationSection("items").getKeys(false)) {
             //Material
@@ -131,6 +185,39 @@ public class Configuration {
 
             item.setItemMeta(meta);
             items.put(name.toUpperCase(), item);
+
+            Main.setItems(items);
+        }
+    }
+
+    public void saveItems() {
+        cfg.set("actualTicket", Main.getActualTicket());
+
+        HashMap<String, ItemStack> items = Main.getItems();
+
+        for (String s : items.keySet()) {
+            cfg.set("items."+s+".material", items.get(s).getType());
+            cfg.set("items."+s+".amount", items.get(s).getAmount());
+            ItemMeta meta = items.get(s).getItemMeta();
+            cfg.set("items."+s+".lore", meta.getLore());
+            cfg.set("items."+s+".displayname", meta.getDisplayName());
+            ArrayList<String> ench = new ArrayList<>();
+            for (Enchantment e : meta.getEnchants().keySet())
+                ench.add(e.toString()+";"+meta.getEnchantLevel(e));
+            cfg.set("items."+s+".enchantments", ench);
+            cfg.set("items."+s+".hide_attributes", meta.getItemFlags().contains(ItemFlag.HIDE_ATTRIBUTES));
+            cfg.set("items."+s+".hide_placed_on", meta.getItemFlags().contains(ItemFlag.HIDE_PLACED_ON));
+            cfg.set("items."+s+".hide_destroys", meta.getItemFlags().contains(ItemFlag.HIDE_DESTROYS));
+            cfg.set("items."+s+".hide_enchantments", meta.getItemFlags().contains(ItemFlag.HIDE_ENCHANTS));
+            cfg.set("items."+s+".hide_unbreakable", meta.getItemFlags().contains(ItemFlag.HIDE_UNBREAKABLE));
+            cfg.set("items."+s+".hide_potioneffects", meta.getItemFlags().contains(ItemFlag.HIDE_POTION_EFFECTS));
+            cfg.set("items."+s+".unbreakable", meta.isUnbreakable());
+        }
+
+        try {
+            cfg.save(f);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

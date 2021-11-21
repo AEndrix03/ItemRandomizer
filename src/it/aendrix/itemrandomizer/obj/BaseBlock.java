@@ -1,20 +1,21 @@
 package it.aendrix.itemrandomizer.obj;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
+
+import java.util.List;
 
 public class BaseBlock {
 
-    private Block block;
-    private double maxY; //The max Y value of the trail
-    private int life; //The life of the item spawns with the trail intersection
-    private Location[] destinationBlocks; //The list of the block where the trail can intersect
+    private Location block;
+    private double maxY;
+    private int life;
+    private List<Location> destinationBlocks;
 
-    public Block getBlock() {
+    public Location getBlock() {
         return block;
     }
 
-    public void setBlock(Block block) {
+    public void setBlock(Location block) {
         this.block = block;
     }
 
@@ -34,11 +35,12 @@ public class BaseBlock {
         this.life = life;
     }
 
-    public Location[] getDestinationBlocks() {
+    public List<Location> getDestinationBlocks() {
         return destinationBlocks;
     }
 
-    public void setDestinationBlocks(Location[] destinationBlocks) {
+    public void setDestinationBlocks(List<Location> destinationBlocks) {
         this.destinationBlocks = destinationBlocks;
     }
+
 }
